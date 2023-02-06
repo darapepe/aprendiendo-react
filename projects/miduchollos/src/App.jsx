@@ -1,7 +1,7 @@
-import { useState } from 'react'
 import './App.css'
-import { Route, Routes, Link, useParams, Outlet } from 'react-router-dom'
+import { Route, Routes, Link, useParams, Outlet, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { NavLink } from './NavLink'
+import { useAuth } from './UseAuth'
 
 // Componentes
 const Home = () => <h1>Home</h1>
@@ -47,6 +47,32 @@ const TacoDetails = () => {
   )
 }
 
+const Login = () => {
+  const { login } = useAuth()
+  const navigate = useNavigate()
+  const { state } = useLocation()
+
+  // location.state
+
+  const handleClick = () => {
+    login()
+    navigate(state?.location?.pathname ?? '/')
+  }
+  return (
+    <button onClick={handleClick}>Login</button>
+  )
+}
+
+const ProtectedRoute = ({ children }) => {
+  const { isAuthenticated } = useAuth();
+    const location = useLocation();
+  if (!isAuthenticated) {
+    return <Navigate to='/login' state={{ location }} />
+  }
+
+  return children
+}
+
 function App() {
 
   return (
@@ -67,10 +93,11 @@ function App() {
 
       <Routes>
         <Route path='/' element={<Home />} />
-        <Route path='/search-page' element={<SearchPage />} />
+        <Route path='/search-page' element={<ProtectedRoute><SearchPage /></ProtectedRoute>} />
         <Route path='/tacos/:name' element={<Tacos />} >
           <Route path='details' element={<TacoDetails />} /> //Ruta anidada
         </Route>
+        <Route path='/login' element={<Login />} ></Route>
         <Route path='*' element={<Home />} />
       </Routes>
     </div>
